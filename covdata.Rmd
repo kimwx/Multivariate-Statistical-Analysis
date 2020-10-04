@@ -1,0 +1,295 @@
+---
+title: "covdata"
+author: "zhangwenxin"
+date: "2020年5月13日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r}
+countries<-read.csv('Countries.csv')
+coviddata<-read.csv('coviddata.csv')
+policies<-read.csv('policies.csv')
+countries
+```
+
+```{r}
+pairs(countries[,-1])
+```
+
+```{r}
+summary(countries[,-1])
+boxplot(scale(countries[,-1]))
+```
+
+```{r}
+hist(log(coviddata$confirmed))
+```
+
+```{r}
+plot(coviddata$R1,coviddata$R2)
+abline(a=0,b=1, col = 'red')
+text(4,1.5,'y=x',col='red')
+title('R1-R2')
+```
+
+```{r}
+which(coviddata$R2>coviddata$R1)
+coviddata[46,]
+coviddata[71,]
+```
+
+
+```{r}
+library(corrplot)
+library(psych)
+corrplot(cor(countries[,-1]),tl.cex=0.8)
+```
+
+```{r}
+set.seed(123)
+## Compute the gap statistic
+gap_stat <- clusGap(c, FUN = kmeans, nstart = 25, K.max = 10, B = 500) 
+# Plot the result
+fviz_gap_stat(gap_stat)
+```
+
+
+```{r}
+c<-scale(countries[,-1])
+library(factoextra)
+set.seed(123)
+km_result <- kmeans(c, 5)
+print(km_result)
+```
+
+```{r}
+fviz_cluster(km_result, data = c,
+palette = c('#0071bb','#2E9FDF','#00AFBB','#4682B4','#008080'),
+ellipse.type = 'euclid',
+star.plot = TRUE,
+repel = TRUE,
+ggtheme = theme_minimal()
+)
+```
+
+
+```{r}
+cluster1<-countryname[which(km_result$cluster==1)]
+cluster1
+```
+
+```{r}
+cluster5<-countryname[which(km_result$cluster==5)]
+cluster5
+```
+
+
+```{r}
+cluster3<-countryname[which(km_result$cluster==3)]
+cluster3
+```
+
+```{r}
+cluster2<-countryname[which(km_result$cluster==2)]
+cluster2
+```
+
+
+
+```{r}
+library(factoextra)
+distcountry <- dist(scale(countries[,-1]), method = "euclidean")
+result_hc <- hclust(d = distcountry, method = "ward.D2")
+fviz_dend(result_hc, k = 5,
+cex = 0.5,
+k_colors =c('#0071bb','#2E9FDF','#00AFBB'),
+color_labels_by_k = TRUE,
+rect = TRUE)
+hclust
+```
+
+
+```{r}
+data.pc=princomp(c,cor=TRUE)
+summary(data.pc,loadings=TRUE)
+```
+
+```{r}
+B<-cor(c)
+lambda<-eigen(B)$values
+plot(x = seq(1,6,1), y = lambda, type = "b", xlab = "PC")
+#text(x = c(2), y = lambda[3]+0.2, labels = c("princomp 3"))
+abline(h = 1, lty = 2)
+```
+
+```{r}
+coviddata
+summary(coviddata[,-1])
+par(las=2) 
+boxplot(scale(coviddata[,-1]))
+
+```
+
+```{r}
+library(corrplot)
+library(psych)
+corrplot(cor(covid),tl.cex=0.8)
+```
+
+```{r}
+ks.test(coviddata$R1,coviddata$R2)
+```
+
+```{r}
+set.seed(123)
+## Compute the gap statistic
+gap_stat2 <- clusGap(covid, FUN = kmeans, nstart = 25, K.max = 10, B = 500) 
+# Plot the result
+fviz_gap_stat(gap_stat2)
+```
+
+
+```{r}
+covid<-scale(coviddata[,-1])
+library(factoextra)
+set.seed(123)
+km_result_covid <- kmeans(covid, 3)
+print(km_result_covid)
+```
+
+```{r}
+fviz_cluster(km_result_covid, data = covid,
+palette = c('#0071bb','#2E9FDF','#00AFBB'),
+ellipse.type = 'euclid',
+star.plot = TRUE,
+repel = TRUE,
+ggtheme = theme_minimal()
+)
+```
+
+```{r}
+clust1<-countryname[which(km_result_covid$cluster==1)]
+clust1
+```
+
+
+```{r}
+clust2<-countryname[which(km_result_covid$cluster==2)]
+clust2
+```
+
+```{r}
+clust3<-countryname[which(km_result_covid$cluster==3)]
+clust3
+```
+
+```{r}
+countryname<-countries$Country
+countryname[82]
+km_result_covid$centers
+```
+
+```{r}
+coviddata[82,]
+```
+
+
+```{r}
+for (i in 2:8){ # the assumption of normality is not satisfied, use PC only
+  qqnorm(coviddata[,i])
+  qqline(coviddata[,i])
+}
+```
+
+```{r}
+pc_covid=princomp(covid,cor=TRUE)
+summary(pc_covid,loadings=TRUE)
+```
+
+```{r}
+library(psych)
+fit1<-principal(coviddata[,-1], nfactors=3, rotate="varimax",n.obs=dim(data)[1],scores=T,method='regression')
+library(scatterplot3d)
+scatterplot3d(fit1$scores[,1],fit1$scores[,2],fit1$scores[,3])
+fit1$loadings
+```
+
+```{r}
+library(ggplot2)
+library(CCP)
+library(CCA)
+img.matcor(matcor(countries[,-1],coviddata[,-1])) 
+```
+
+```{r}
+
+ccres<-cc(countries[,-1],coviddata[,-1])
+plt.cc(ccres,d1=1,d2=2,type='b',var.label=TRUE)
+```
+```{r}
+policystrigency<-read.csv('policy.csv')
+R<-subset(coviddata,select=c(R1,R2))
+```
+
+
+```{r}
+
+plot(policystrigency$Stringency1,policystrigency$Stringency2)
+abline(a=0,b=1, col = 'red')
+text(65,60,'y=x',col='red')
+title('Stringency 1 - Stringency 2')
+```
+
+```{r}
+cca<-cancor(policystrigency[,-1],R0)
+cca$ycoef
+cca$xcoef
+cca$cor
+
+```
+
+
+```{r}
+ccres2<-cc(policystrigency[,-1],coviddata[,7:8])
+plt.cc(ccres2,d1=1,d2=2,type='b',var.label=TRUE)
+```
+
+```{r}
+img.matcor(matcor(policystrigency[,-1],coviddata[,7:8])) 
+```
+
+```{r}
+#summary(policystrigency[,-1])
+ks.test(policystrigency$Stringency1,policystrigency$Stringency2)
+```
+
+```{r}
+library(kernlab)
+p<-data.matrix(policystrigency[,-1])
+c<-data.matrix(coviddata[,-1])
+kcca(p,c,ncomps = 2)
+```
+
+```{r}
+regdata<-as.data.frame(c(coviddata[,-1],policystrigency[,-1],countries[,-1]))
+reg<-lm(R2~confirmed+doubletime+over100+Stringency2+PopDensity+InfantMortality+GDP+Literacy+HealthCare,data=regdata)
+summary(reg)
+```
+
+```{r}
+reg1<-lm(R1~confirmed+doubletime+over100+Stringency1+PopDensity+InfantMortality+GDP+Literacy+HealthCare,data=regdata)
+summary(reg1)
+```
+
+
